@@ -1,4 +1,4 @@
-# Onetoweb Sendcloud Client
+# Onetoweb Sendcloud Api Client
 
 ## Installing
 
