@@ -227,7 +227,6 @@ $shippingProducts = $client->get('shipping-products', [
     'from_country' => 'NL'
 ]);
 
-
 // get label urls
 $parcelId = 42;
 $labels = $client->get("labels/$parcelId");
@@ -281,4 +280,3 @@ $senderAddresses = $client->get("user/addresses/sender/$senderAddressId");
 
 // get integrations
 $integrations = $client->get('integrations');
-
