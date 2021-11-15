@@ -11,6 +11,17 @@ $apiSecret = 'api_secret';
 // get client
 $client = new Client($apiKey, $apiSecret);
 
+// (optional) set too many requests callback
+$client->setTooManyRequestsCallback(function() {
+    
+    // sleep for 60 seconds before repeating the request
+    sleep(60);
+    
+    // return (bool) true if the request must repeated 
+    return true;
+    
+});
+
 // get parcels
 $parcels = $client->get('parcels');
 

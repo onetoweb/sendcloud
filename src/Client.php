@@ -40,6 +40,11 @@ class Client
     private $version;
     
     /**
+     * @var callable
+     */
+    private $tooManyRequestsCallback;
+    
+    /**
      * @param string $apiKey
      * @param string $apiSecret
      * @param string $version = self::VERSION
@@ -82,6 +87,14 @@ class Client
         }
         
         return urldecode($uri);
+    }
+    
+    /**
+     * @param callable $tooManyRequestsCallback
+     */
+    public function setTooManyRequestsCallback(callable $tooManyRequestsCallback): void
+    {
+        $this->tooManyRequestsCallback = $tooManyRequestsCallback;
     }
     
     /**
@@ -152,6 +165,7 @@ class Client
         
         // setup options
         $options = [
+            RequestOptions::HTTP_ERRORS => false,
             RequestOptions::HEADERS => $headers,
             RequestOptions::AUTH => [
                 $this->apiKey,
@@ -170,32 +184,30 @@ class Client
         // add query
         $options[RequestOptions::QUERY] = $query;
         
-        try {
+        // request
+        $response = (new GuzzleClient())->request($method, $uri, $options);
+        
+        // handle 429 - too many requests
+        if ($response->getStatusCode() === 429) {
             
-            // request
-            $response = (new GuzzleClient())->request($method, $uri, $options);
-            
-            // get contents
-            $contents = $response->getBody()->getContents();
-            
-            if ($response->getHeaderLine('Content-Type') == 'application/json') {
-                return json_decode($contents, true);
-            } else {
-                return $contents;
-            }
-            
-        } catch (RequestException $requestException) {
-            
-            if ($requestException->hasResponse()) {
+            if ($this->tooManyRequestsCallback !== null) {
                 
-                $contents = $requestException->getResponse()->getBody()->getContents();
-                
-                return json_decode($contents, true);
+                // execute too many request callback
+                if (($this->tooManyRequestsCallback)() === true) {
+                    
+                    // retry request
+                    $response = (new GuzzleClient())->request($method, $uri, $options);
+                }
             }
-            
-            return [
-                'message' => 'no response'
-            ];
+        }
+        
+        // get contents
+        $contents = $response->getBody()->getContents();
+        
+        if ($response->getHeaderLine('Content-Type') == 'application/json') {
+            return json_decode($contents, true);
+        } else {
+            return $contents;
         }
     }
 }
