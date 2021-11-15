@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 
 use Onetoweb\Sendcloud\Client;
 
-// param
+// params
 $apiKey = 'api_key';
 $apiSecret = 'api_secret';
 

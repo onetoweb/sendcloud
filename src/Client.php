@@ -18,6 +18,8 @@ class Client
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
     const METHOD_PUT = 'PUT';
+    const METHOD_HEAD = 'HEAD';
+    const METHOD_OPTIONS = 'OPTIONS';
     
     const BASE_HREF = 'https://panel.sendcloud.sc/api';
     const VERSION = 'v2';
@@ -118,6 +120,18 @@ class Client
     public function put(string $endpoint, array $data = [], array $query = [], array $headers = [])
     {
         return $this->request(self::METHOD_PUT, $endpoint, $data, $query, $headers);
+    }
+    
+    /**
+     * @param string $endpoint
+     * @param array $query = []
+     * @param array $headers = []
+     *
+     * @return mixed
+     */
+    public function options(string $endpoint, array $query = [], array $headers = [])
+    {
+        return $this->request(self::METHOD_OPTIONS, $endpoint, [], $query, $headers);
     }
     
     /**
