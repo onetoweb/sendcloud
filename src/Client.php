@@ -184,7 +184,7 @@ class Client
         // add query
         $options[RequestOptions::QUERY] = $query;
         
-        // request
+        // make request
         $response = (new GuzzleClient())->request($method, $uri, $options);
         
         // handle 429 - too many requests

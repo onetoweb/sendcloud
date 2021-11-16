@@ -169,10 +169,17 @@ $result = $client->get("parcels/$parcelId/return_portal_url");
 
 // get parcel document
 $parcelId = 42;
-$result = $client->get("parcels/$parcelId/documents/pdf", [
+$type = 'label';
+$data = $client->get("parcels/$parcelId/documents/$type", [
     'format' => 'pdf',
     'dpi' => '72'
 ]);
+
+// create label file
+$file = '/path/to/filename.pdf';
+
+// write data to file
+file_put_contents($file, $data);
 
 // get parcel statuses
 $statuses = $client->get('parcels/statuses');
@@ -261,7 +268,6 @@ $labels = $client->post("labels", [
         ]
     ]
 ]);
-
 
 // get label data
 $labelData = $client->get($labels['label']['normal_printer'][0]);
