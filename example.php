@@ -297,3 +297,26 @@ $senderAddresses = $client->get("user/addresses/sender/$senderAddressId");
 
 // get integrations
 $integrations = $client->get('integrations');
+
+/**
+ * Service points
+ */
+
+// get carriers
+$carriers = $client->getServicepoint('carriers');
+
+// get service points
+$servicePoints = $client->getServicepoint('service-points', [
+    'country' => 'NL',
+    'latitude' => 52.0906866,
+    'longitude' => 5.1214585
+]);
+
+// get service point
+$servicePointId = 42;
+$servicePoint = $client->getServicepoint("service-points/$servicePointId");
+
+// check service point availability
+$servicePointId = 42;
+$servicePointAvailability = $client->getServicepoint("service-points/$servicePointId/check-availability/");
+

@@ -21,7 +21,10 @@ class Client
     const METHOD_HEAD = 'HEAD';
     const METHOD_OPTIONS = 'OPTIONS';
     
-    const BASE_HREF = 'https://panel.sendcloud.sc/api';
+    const SECTION_SERVICEPOINTS = 'servicepoints';
+    const SECTION_PANEL = 'panel';
+    
+    const BASE_HREF = 'https://%s.sendcloud.sc/api';
     const VERSION = 'v2';
     
     /**
@@ -60,11 +63,12 @@ class Client
      * Get uri & extract query params
      * 
      * @param string $endpoint
+     * @param string $section
      * @param array &$query = []
      * 
      * @return string
      */
-    private function getUri(string $endpoint, array &$query = []): string
+    private function getUri(string $endpoint, string $section, array &$query = []): string
     {
         // extract query params
         $queryString = parse_url($endpoint, PHP_URL_QUERY);
@@ -77,7 +81,7 @@ class Client
         $endpoint = str_replace("?$queryString", '', $endpoint);
         
         // build base uri
-        $baseUri = self::BASE_HREF.'/'.$this->version;
+        $baseUri = sprintf(self::BASE_HREF, $section).'/'.$this->version;
         
         // add endpoint to base uri
         if(strpos($endpoint, $baseUri) === false){
@@ -148,15 +152,25 @@ class Client
     }
     
     /**
+     * @param string $endpoint
+     * @param array $query = []
+     */
+    public function getServicepoint(string $endpoint, array $query = [])
+    {
+        return $this->request(self::METHOD_GET, $endpoint, [], $query, [], self::SECTION_SERVICEPOINTS);
+    }
+    
+    /**
      * @param string $method
      * @param string $endpoint
      * @param array $data = []
      * @param array $query = []
      * @param array $headers = []
+     * @param string $section = self::SECTION_PANEL
      * 
      * @return mixed
      */
-    public function request(string $method, string $endpoint, array $data = [], array $query = [], array $headers = [])
+    public function request(string $method, string $endpoint, array $data = [], array $query = [], array $headers = [], string $section = self::SECTION_PANEL)
     {
         // build headers
         $headers = array_merge([
@@ -179,7 +193,7 @@ class Client
         }
         
         // get uri & extract query from endpoint string
-        $uri = $this->getUri($endpoint, $query);
+        $uri = $this->getUri($endpoint, $section, $query);
         
         // add query
         $options[RequestOptions::QUERY] = $query;
