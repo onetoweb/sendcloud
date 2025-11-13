@@ -218,7 +218,7 @@ class Client
         // get contents
         $contents = $response->getBody()->getContents();
         
-        if ($response->getHeaderLine('Content-Type') == 'application/json') {
+        if (str_contains($response->getHeaderLine('Content-Type'), 'application/json')) {
             return json_decode($contents, true);
         } else {
             return $contents;
