@@ -2,30 +2,30 @@
 
 namespace Onetoweb\Sendcloud;
 
-use GuzzleHttp\Client as GuzzleClient;
+use Onetoweb\Sendcloud\Endpoint\Endpoints;
 use GuzzleHttp\RequestOptions;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Client as GuzzleCLient;
+use GuzzleHttp\Psr7\Query;
 
 /**
- * Sendcloud Api CLient.
- * 
- * @author Jonathan van 't Ende <jvantende@onetoweb.nl>
- * @copyright Onetoweb B.V.
- * @see https://docs.sendcloud.sc/api/v2/shipping/
+ * Sendcloud Api Client.
  */
+#[\AllowDynamicProperties]
 class Client
 {
-    const METHOD_GET = 'GET';
-    const METHOD_POST = 'POST';
-    const METHOD_PUT = 'PUT';
-    const METHOD_HEAD = 'HEAD';
-    const METHOD_OPTIONS = 'OPTIONS';
+    /**
+     * Base href
+     */
+    public const BASE_HREF_TEST = 'https://stoplight.io/mocks/sendcloud/sendcloud-public-api/475741403';
+    public const BASE_HREF_LIVE = 'https://panel.sendcloud.sc/api/v3';
     
-    const SECTION_SERVICEPOINTS = 'servicepoints';
-    const SECTION_PANEL = 'panel';
-    
-    const BASE_HREF = 'https://%s.sendcloud.sc/api';
-    const VERSION = 'v2';
+    /**
+     * Methods.
+     */
+    public const METHOD_GET = 'GET';
+    public const METHOD_POST = 'POST';
+    public const METHOD_PATCH = 'PATCH';
+    public const METHOD_DELETE = 'DELETE';
     
     /**
      * @var string
@@ -38,126 +38,173 @@ class Client
     private $apiSecret;
     
     /**
-     * @var string
+     * @var bool
      */
-    private $version;
+    private $testModus;
     
     /**
-     * @var callable
+     * @var string
      */
-    private $tooManyRequestsCallback;
+    private $partnerId;
+    
+    /**
+     * @var string
+     */
+    private $previousCursor;
+    
+    /**
+     * @var string
+     */
+    private $nextCursor;
     
     /**
      * @param string $apiKey
-     * @param string $apiSecret
-     * @param string $version = self::VERSION
+     * @param bool $testModus = true
      */
-    public function __construct(string $apiKey, string $apiSecret, string $version = self::VERSION)
+    public function __construct(string $apiKey, string $apiSecret, bool $testModus = true)
     {
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
-        $this->version = $version;
+        $this->testModus = $testModus;
+        
+        // load endpoints
+        $this->loadEndpoints();
     }
     
     /**
-     * Get uri & extract query params
+     * @return string
+     */
+    public function getApiSecret(): string
+    {
+        return $this->apiSecret;
+    }
+    
+    /**
+     * @param string $partnerId
      * 
+     * @return void
+     */
+    public function setPartnerId(string $partnerId): void
+    {
+        $this->partnerId = $partnerId;
+    }
+    
+    /**
+     * @return void
+     */
+    private function loadEndpoints(): void
+    {
+        foreach (Endpoints::list() as $name => $class) {
+            $this->{$name} = new $class($this);
+        }
+    }
+    
+    /**
+     * @return string
+     */
+    public function getBaseHref(): string
+    {
+        return $this->testModus ? self::BASE_HREF_TEST : self::BASE_HREF_LIVE;
+    }
+    
+    /**
      * @param string $endpoint
-     * @param string $section
-     * @param array &$query = []
      * 
      * @return string
      */
-    private function getUri(string $endpoint, string $section, array &$query = []): string
+    public function getUrl(string $endpoint): string
     {
-        // extract query params
-        $queryString = parse_url($endpoint, PHP_URL_QUERY);
-        parse_str($queryString, $queryArray);
+        return $this->getBaseHref() . '/' . ltrim($endpoint, '/');
+    }
+    
+    /**
+     * @param string $endpoint
+     * @param array $query = []
+     * @param array $extraHeaders = []
+     * 
+     * @return array|NULL
+     */
+    public function get(string $endpoint, array $query = [], array $extraHeaders = []): ?array
+    {
+        return $this->request(self::METHOD_GET, $endpoint, [], $query, $extraHeaders);
+    }
+    
+    /**
+     * @param string $endpoint
+     * @param array $data = []
+     * 
+     * @return array|NULL
+     */
+    public function post(string $endpoint, array $data = []): ?array
+    {
+        return $this->request(self::METHOD_POST, $endpoint, $data);
+    }
+    
+    /**
+     * @param string $endpoint
+     * @param array $data = []
+     * 
+     * @return array|NULL
+     */
+    public function patch(string $endpoint, array $data = []): ?array
+    {
+        return $this->request(self::METHOD_PATCH, $endpoint, $data);
+    }
+    
+    /**
+     * @param string $endpoint
+     * 
+     * @return array|NULL
+     */
+    public function delete(string $endpoint): ?array
+    {
+        return $this->request(self::METHOD_DELETE, $endpoint);
+    }
+    
+    /**
+     * @param int $ofsset = 0
+     * @param bool $reverse = false
+     * 
+     * @return string
+     */
+    public function buildCursor(int $ofsset = 0, bool $reverse = false): string
+    {
+        return base64_encode(http_build_query([
+            'o' => $ofsset,
+            'r' => $reverse,
+        ]));
+    }
+    
+    /**
+     * @param string $url
+     * 
+     * @return string|NULL
+     */
+    private function getUrlCursor(string $url)
+    {
+        parse_str(parse_url($url, PHP_URL_QUERY), $query);
         
-        // merge query params
-        $query = array_merge($queryArray, $query);
-        
-        // remove query string from endpoint
-        $endpoint = str_replace("?$queryString", '', $endpoint);
-        
-        // build base uri
-        $baseUri = sprintf(self::BASE_HREF, $section).'/'.$this->version;
-        
-        // add endpoint to base uri
-        if(strpos($endpoint, $baseUri) === false){
-            $uri = "$baseUri/$endpoint";
-        } else {
-            $uri = $endpoint;
+        if (isset($query['cursor'])) {
+            return $query['cursor'];
         }
         
-        return urldecode($uri);
+        return null;
     }
     
     /**
-     * @param callable $tooManyRequestsCallback
+     * @return string|NULL
      */
-    public function setTooManyRequestsCallback(callable $tooManyRequestsCallback): void
+    public function getPreviousCursor(): ?string
     {
-        $this->tooManyRequestsCallback = $tooManyRequestsCallback;
+        return $this->previousCursor;
     }
     
     /**
-     * @param string $endpoint
-     * @param array $query = []
-     * @param array $headers = []
-     *
-     * @return mixed
+     * @return string|NULL
      */
-    public function get(string $endpoint, array $query = [], array $headers = [])
+    public function getNextCursor(): ?string
     {
-        return $this->request(self::METHOD_GET, $endpoint, [], $query, $headers);
-    }
-    
-    /**
-     * @param string $endpoint
-     * @param array $data = []
-     * @param array $query = []
-     * @param array $headers = []
-     *
-     * @return mixed
-     */
-    public function post(string $endpoint, array $data = [], array $query = [], array $headers = [])
-    {
-        return $this->request(self::METHOD_POST, $endpoint, $data, $query, $headers);
-    }
-    
-    /**
-     * @param string $endpoint
-     * @param array $data = []
-     * @param array $query = []
-     * @param array $headers = []
-     *
-     * @return mixed
-     */
-    public function put(string $endpoint, array $data = [], array $query = [], array $headers = [])
-    {
-        return $this->request(self::METHOD_PUT, $endpoint, $data, $query, $headers);
-    }
-    
-    /**
-     * @param string $endpoint
-     * @param array $query = []
-     * @param array $headers = []
-     *
-     * @return mixed
-     */
-    public function options(string $endpoint, array $query = [], array $headers = [])
-    {
-        return $this->request(self::METHOD_OPTIONS, $endpoint, [], $query, $headers);
-    }
-    
-    /**
-     * @param string $endpoint
-     * @param array $query = []
-     */
-    public function getServicepoint(string $endpoint, array $query = [])
-    {
-        return $this->request(self::METHOD_GET, $endpoint, [], $query, [], self::SECTION_SERVICEPOINTS);
+        return $this->nextCursor;
     }
     
     /**
@@ -165,63 +212,69 @@ class Client
      * @param string $endpoint
      * @param array $data = []
      * @param array $query = []
-     * @param array $headers = []
-     * @param string $section = self::SECTION_PANEL
+     * @param array $extraHeaders = []
      * 
-     * @return mixed
+     * @return array|NULL
      */
-    public function request(string $method, string $endpoint, array $data = [], array $query = [], array $headers = [], string $section = self::SECTION_PANEL)
+    public function request(string $method, string $endpoint, array $data = [], array $query = [], array $extraHeaders = []): ?array
     {
         // build headers
-        $headers = array_merge([
-            'Content-Type' => 'application/json',
-        ], $headers);
+        $headers = [
+            'Accept' => 'application/json'
+        ];
         
-        // setup options
+        if ($this->partnerId !== null) {
+            $headers['Sendcloud-Partner-Id'] = $this->partnerId;
+        }
+        
+        // build options
         $options = [
             RequestOptions::HTTP_ERRORS => false,
-            RequestOptions::HEADERS => $headers,
+            RequestOptions::HEADERS => array_merge($headers, $extraHeaders),
             RequestOptions::AUTH => [
                 $this->apiKey,
                 $this->apiSecret
-            ]
+            ],
+            RequestOptions::QUERY => Query::build($query),
         ];
         
-        // add data
-        if (in_array($method, [self::METHOD_POST, self::METHOD_PUT])) {
+        if (count($data) > 0) {
             $options[RequestOptions::JSON] = $data;
         }
         
-        // get uri & extract query from endpoint string
-        $uri = $this->getUri($endpoint, $section, $query);
-        
-        // add query
-        $options[RequestOptions::QUERY] = $query;
-        
         // make request
-        $response = (new GuzzleClient())->request($method, $uri, $options);
-        
-        // handle 429 - too many requests
-        if ($response->getStatusCode() === 429) {
-            
-            if ($this->tooManyRequestsCallback !== null) {
-                
-                // execute too many request callback
-                if (($this->tooManyRequestsCallback)() === true) {
-                    
-                    // retry request
-                    $response = (new GuzzleClient())->request($method, $uri, $options);
-                }
-            }
-        }
+        $response = (new GuzzleCLient())->request($method, $this->getUrl($endpoint), $options);
         
         // get contents
         $contents = $response->getBody()->getContents();
         
-        if (str_contains($response->getHeaderLine('Content-Type'), 'application/json')) {
-            return json_decode($contents, true);
-        } else {
-            return $contents;
+        // return json content
+        if (str_starts_with($response->getHeaderLine('content-type'), 'application/json')) {
+        
+            // decode json
+            $json = json_decode($contents, true);
+            
+            // get previous cursor
+            $this->previousCursor = null;
+            if (isset($json['previous'])) {
+                $this->previousCursor = $this->getUrlCursor($json['previous']);
+            }
+            
+            // get next cursor
+            $this->nextCursor = null;
+            if (isset($json['next'])) {
+                $this->nextCursor = $this->getUrlCursor($json['next']);
+            }
+            
+        } elseif (in_array($response->getHeaderLine('content-type'), ['application/pdf', 'application/zpl', 'image/png'])) {
+            
+            // encode file contents
+            $json = [
+                'content_type' => $response->getHeaderLine('content-type'),
+                'data' => base64_encode($contents)
+            ];
         }
+        
+        return $json;
     }
 }

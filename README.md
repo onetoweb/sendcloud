@@ -1,4 +1,4 @@
-# Onetoweb Sendcloud Api Client
+# Sendcloud Api Client
 
 ## Installing
 
@@ -8,9 +8,8 @@ composer require onetoweb/sendcloud
 
 ## Usage
 
-See example.php
+See [Documentation](docs/index.rst)
 
+## Change Log
 
-## Webhook
-
-See webhook.php
+See [Change Log](CHANGELOG.md)
