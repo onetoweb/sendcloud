@@ -7,3 +7,4 @@
 ## [2.0.1] - 2025-11-19
 
 - Added ShippingOption endpoint.
+- Added Pickup endpoint.
