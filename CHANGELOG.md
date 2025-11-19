@@ -8,3 +8,4 @@
 
 - Added ShippingOption endpoint.
 - Added Pickup endpoint.
+- Added SenderAddress endpoint.
