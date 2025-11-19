@@ -273,6 +273,9 @@ class Client
                 'content_type' => $response->getHeaderLine('content-type'),
                 'data' => base64_encode($contents)
             ];
+            
+        } else {
+            $json = null;
         }
         
         return $json;

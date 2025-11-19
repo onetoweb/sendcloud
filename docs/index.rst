@@ -39,5 +39,6 @@ Examples
 * `User <user.rst>`_
 * `Returns <returns.rst>`_
 * `Shipment <shipment.rst>`_
+* `ShippingOption <shipping_option.rst>`_
 * `Compatibility <compatibility.rst>`_
 * `Webhook <webhook.rst>`_
