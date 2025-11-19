@@ -16,6 +16,8 @@ Verify webhook & get webhook data
 
 .. code-block:: php
     
+    use Symfony\Component\HttpFoundation\Response;
+    
     // verify webhook data
     if ($client->webhook->verify()) {
         

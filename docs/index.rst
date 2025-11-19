@@ -17,14 +17,11 @@ Setup
     
     require 'vendor/autoload.php';
     
-    Symfony\Component\ErrorHandler\Debug::enable();
-    
     use Onetoweb\Sendcloud\Client;
     
-    // param
+    // params
     $apiKey = 'api_key';
     $apiSecret = 'api_secret';
-    
     $testModus = true;
     
     // setup client
@@ -41,8 +38,6 @@ Examples
 
 * `User <user.rst>`_
 * `Returns <returns.rst>`_
-
 * `Shipment <shipment.rst>`_
-
 * `Compatibility <compatibility.rst>`_
 * `Webhook <webhook.rst>`_
