@@ -41,5 +41,7 @@ Examples
 * `Shipment <shipment.rst>`_
 * `Pickup <pickup.rst>`_
 * `ShippingOption <shipping_option.rst>`_
+* `SenderAddress <sender_address.rst>`_
 * `Compatibility <compatibility.rst>`_
+* `Parcel <parcel.rst>`_
 * `Webhook <webhook.rst>`_
