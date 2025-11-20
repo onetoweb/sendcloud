@@ -38,6 +38,8 @@ Examples
 
 * `User <user.rst>`_
 * `Returns <returns.rst>`_
+* `Order <order.rst>`_
+
 * `Integration <integration.rst>`_
 * `Shipment <shipment.rst>`_
 * `Pickup <pickup.rst>`_

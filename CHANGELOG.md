@@ -14,3 +14,4 @@
 
 - Added Integration endpoint.
 - Added Contract endpoint.
+- Added Order endpoint.
