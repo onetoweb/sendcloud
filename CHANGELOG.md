@@ -13,3 +13,4 @@
 ## [2.0.2] - 2025-11-20
 
 - Added Integration endpoint.
+- Added Contract endpoint.

@@ -41,6 +41,7 @@ Examples
 * `Integration <integration.rst>`_
 * `Shipment <shipment.rst>`_
 * `Pickup <pickup.rst>`_
+* `Contract <contract.rst>`_
 * `ShippingOption <shipping_option.rst>`_
 * `Parcel <parcel.rst>`_
 * `SenderAddress <sender_address.rst>`_
