@@ -3,7 +3,6 @@
 namespace Onetoweb\Sendcloud\Endpoint\Endpoints;
 
 use Onetoweb\Sendcloud\Endpoint\AbstractEndpoint;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Parcel Endpoint.

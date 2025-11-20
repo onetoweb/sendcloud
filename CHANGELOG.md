@@ -9,3 +9,7 @@
 - Added ShippingOption endpoint.
 - Added Pickup endpoint.
 - Added SenderAddress endpoint.
+
+## [2.0.2] - 2025-11-20
+
+- Added Integration endpoint.
