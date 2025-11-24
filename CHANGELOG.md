@@ -15,4 +15,7 @@
 - Added Integration endpoint.
 - Added Contract endpoint.
 - Added Order endpoint.
+
+## [2.0.3] - 2025-11-24
+
 - Added OrderLabel endpoint.
