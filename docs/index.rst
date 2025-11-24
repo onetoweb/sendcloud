@@ -39,7 +39,7 @@ Examples
 * `User <user.rst>`_
 * `Returns <returns.rst>`_
 * `Order <order.rst>`_
-
+* `OrderLabel <order_label.rst>`_
 * `Integration <integration.rst>`_
 * `Shipment <shipment.rst>`_
 * `Pickup <pickup.rst>`_

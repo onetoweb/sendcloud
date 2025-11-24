@@ -15,3 +15,4 @@
 - Added Integration endpoint.
 - Added Contract endpoint.
 - Added Order endpoint.
+- Added OrderLabel endpoint.
