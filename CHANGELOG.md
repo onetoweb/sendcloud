@@ -19,3 +19,10 @@
 ## [2.0.3] - 2025-11-24
 
 - Added OrderLabel endpoint.
+
+## [2.1.0] - 2026-09-22
+
+ - Require php 8 or higher
+ - Drop support for guzzle 6
+ - Add support for guzzle 8
+ - Add SensitiveParameter attribute

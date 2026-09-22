@@ -3,6 +3,7 @@
 namespace Onetoweb\Sendcloud;
 
 use Onetoweb\Sendcloud\Endpoint\Endpoints;
+use Onetoweb\Sendcloud\Config\Method;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Client as GuzzleCLient;
 use GuzzleHttp\Psr7\Query;
@@ -18,29 +19,6 @@ class Client
      */
     public const BASE_HREF_TEST = 'https://stoplight.io/mocks/sendcloud/sendcloud-public-api/475741403';
     public const BASE_HREF_LIVE = 'https://panel.sendcloud.sc/api/v3';
-    
-    /**
-     * Methods.
-     */
-    public const METHOD_GET = 'GET';
-    public const METHOD_POST = 'POST';
-    public const METHOD_PATCH = 'PATCH';
-    public const METHOD_DELETE = 'DELETE';
-    
-    /**
-     * @var string
-     */
-    private $apiKey;
-    
-    /**
-     * @var string
-     */
-    private $apiSecret;
-    
-    /**
-     * @var bool
-     */
-    private $testModus;
     
     /**
      * @var string
@@ -59,14 +37,19 @@ class Client
     
     /**
      * @param string $apiKey
+     * @param string $apiSecret
      * @param bool $testModus = true
      */
-    public function __construct(string $apiKey, string $apiSecret, bool $testModus = true)
-    {
-        $this->apiKey = $apiKey;
-        $this->apiSecret = $apiSecret;
-        $this->testModus = $testModus;
+    public function __construct(
         
+        #[\SensitiveParameter]
+        private string $apiKey,
+        
+        #[\SensitiveParameter]
+        private string $apiSecret,
+        
+        private bool $testModus = true
+    ) {
         // load endpoints
         $this->loadEndpoints();
     }
@@ -126,7 +109,7 @@ class Client
      */
     public function get(string $endpoint, array $query = [], array $extraHeaders = []): ?array
     {
-        return $this->request(self::METHOD_GET, $endpoint, [], $query, $extraHeaders);
+        return $this->request(Method::GET, $endpoint, [], $query, $extraHeaders);
     }
     
     /**
@@ -137,7 +120,7 @@ class Client
      */
     public function post(string $endpoint, array $data = []): ?array
     {
-        return $this->request(self::METHOD_POST, $endpoint, $data);
+        return $this->request(Method::POST, $endpoint, $data);
     }
     
     /**
@@ -148,7 +131,7 @@ class Client
      */
     public function patch(string $endpoint, array $data = []): ?array
     {
-        return $this->request(self::METHOD_PATCH, $endpoint, $data);
+        return $this->request(Method::PATCH, $endpoint, $data);
     }
     
     /**
@@ -158,7 +141,7 @@ class Client
      */
     public function delete(string $endpoint): ?array
     {
-        return $this->request(self::METHOD_DELETE, $endpoint);
+        return $this->request(Method::DELETE, $endpoint);
     }
     
     /**
@@ -208,7 +191,7 @@ class Client
     }
     
     /**
-     * @param string $method
+     * @param Method $method
      * @param string $endpoint
      * @param array $data = []
      * @param array $query = []
@@ -216,7 +199,7 @@ class Client
      * 
      * @return array|NULL
      */
-    public function request(string $method, string $endpoint, array $data = [], array $query = [], array $extraHeaders = []): ?array
+    public function request(Method $method, string $endpoint, array $data = [], array $query = [], array $extraHeaders = []): ?array
     {
         // build headers
         $headers = [
@@ -243,7 +226,7 @@ class Client
         }
         
         // make request
-        $response = (new GuzzleCLient())->request($method, $this->getUrl($endpoint), $options);
+        $response = (new GuzzleCLient())->request($method->value, $this->getUrl($endpoint), $options);
         
         // get contents
         $contents = $response->getBody()->getContents();
